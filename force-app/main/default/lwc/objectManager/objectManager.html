@@ -1,0 +1,157 @@
+<template>
+    <template if:false={showfields}>
+        <div style="background-color:white;" class="slds-border_bottom">
+            <span class="slds-p-around_small">
+                <lightning-icon class="slds-p-around_small" icon-name="standard:entity" alternative-text="Objects"
+                    title="Objects"></lightning-icon>
+                <span style="font-size:xx-large;font-weight:bold" class="slds-p-around_small">Object Manager</span>
+            </span>
+            <div class="slds-clearfix slds-p-around_small">
+                <lightning-input class="slds-p-around_small slds-float_left" onchange={handleKeyUp} name="entersearch"
+                    placeholder="Quick Find" type="search"></lightning-input>
+                <br />
+                <lightning-button class="slds-p-around_small slds-float_right" variant="brand" onclick={showModal}
+                    label="New Custom Object" slot="actions"></lightning-button>
+            </div>
+        </div>
+        <template if:true={loadedforObject}>
+            <lightning-datatable class="slds-p-around_small" resize-column-disabled="true" key-field="id" data={display}
+                columns={columns} onrowaction={handleRowAction} hide-checkbox-column="true">
+            </lightning-datatable>
+        </template>
+        <template if:false={loadedforObject}>
+            <lightning-spinner alternative-text="Loading"></lightning-spinner>
+        </template>
+        <template if:true={openModal}>
+            <div class="slds-modal slds-fade-in-open slds-backdrop">
+                <div class="slds-modal__container">
+                    <!------HEADER Section-->
+                    <div class="slds-modal__header">
+                        <lightning-button-icon icon-name="utility:close" alternative-text="Close this window"
+                            size="large" variant="bare-inverse" onclick={closeModal} class="slds-modal__close">
+                        </lightning-button-icon>
+                        <h1 style="font-size:x-large; font-weight:bold;">New Custom Object</h1>
+                    </div>
+                    <!------Body Section-->
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-input type="text" label="Enter Label Name" placeholder="type here" required="true"
+                            onfocusout={handleFocus} onchange={handleInput}></lightning-input>
+                        <p style="color:red" class="slds-p-top_x-small">{msg}</p>
+                        <lightning-input type="text" label="Api Name" disabled="true" value={customObjectApi}>
+                        </lightning-input>
+
+                    </div>
+                    <!------Footer Section-->
+                    <div class="slds-modal__footer">
+                        <lightning-button class="slds-p-around_small" label="Cancel" variant="brand-outline"
+                            onclick={closeModal}>
+                        </lightning-button>
+                        <lightning-button class="slds-p-around_small" label="Create Object" variant="brand"
+                            onclick={CreateCustomObject}>
+                        </lightning-button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </template>
+    <template if:true={showfields}>
+        <template if:true={loaded}>
+            <div style="background-color:white;" class="slds-border_bottom">
+                <div>
+                    <lightning-button-icon icon-name="utility:chevronleft" onclick={handleBack}></lightning-button-icon>
+                </div>
+                <span class="slds-p-around_small">
+                    <lightning-icon class="slds-p-around_small" icon-name="standard:entity" alternative-text="Fields"
+                        title="Fields"></lightning-icon>
+                    <span style="font-size:xx-large;font-weight:bold" class="slds-p-around_small">{fieldHeading}</span>
+                </span>
+                <div class="slds-clearfix slds-p-around_small">
+                    <lightning-input class="slds-p-around_small slds-float_left" value={queryTerm}
+                        onchange={handleChange} name="entersearch" placeholder="Quick Find" type="search">
+                    </lightning-input>
+                    <br />
+                    <lightning-button class="slds-p-around_small slds-float_right" variant="brand"
+                        label="New Custom Field" slot="actions" onclick={showFieldModal}></lightning-button>
+                </div>
+            </div>
+            <template if:true={openFieldModal}>
+                <div class="slds-modal slds-fade-in-open slds-backdrop">
+                    <div class="slds-modal__container">
+                        <!------HEADER Section-->
+                        <div class="slds-modal__header">
+                            <lightning-button-icon icon-name="utility:close" alternative-text="Close this window"
+                                size="large" variant="bare-inverse" onclick={closeFieldModal} class="slds-modal__close">
+                            </lightning-button-icon>
+                            <h1 style="font-size:x-large; font-weight:bold;">New Custom Field</h1>
+                        </div>
+                        <!------Body Section-->
+                        <div class="slds-modal__content slds-p-around_medium">
+                            <lightning-input type="text" label="Enter Field Label" required="true" value={fieldLabel} onfocusout={handleFieldFocus} onchange={handleFieldLabel}></lightning-input>
+                            <p style="color:red;" class="slds-p-top_x-small">{msg}</p>
+                            <lightning-combobox name="progress" label="Type" value={fieldType}
+                                placeholder="Select Type of Field" options={fieldOptions}  required="true" onchange={handleType}> 
+                            </lightning-combobox>
+                            <lightning-input type="text" label="Field Api Name" value={fieldApi} disabled="true" ></lightning-input>
+                            <lightning-input type="text" label="Object Name" value={selectedObjectApiName} disabled="true" ></lightning-input>
+                            
+                        </div>
+                        <!------Footer Section-->
+                        <div class="slds-modal__footer">
+                            <lightning-button class="slds-p-around_small" label="Cancel" variant="brand-outline"
+                                onclick={closeFieldModal}>
+                            </lightning-button>
+                            <lightning-button class="slds-p-around_small" label="Create Custom Field" variant="brand"
+                                onclick={CreateCustomField}>
+                            </lightning-button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered"
+                aria-labelledby="element-with-table-label other-element-with-table-label">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col">
+                            <div class="slds-truncate" title="LABEL">LABEL</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class="slds-truncate" title="API NAME">API NAME</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class="slds-truncate" title="CONFIG">CONFIG</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={displayfields} for:item="item">
+                        <tr class="slds-hint-parent" key={item}>
+                            <th data-label="LABEL" scope="row">
+                                <div class="slds-truncate" title={item.Label}>
+                                    <div data-value={item} tabindex="-1">{item.Label}</div>
+                                </div>
+                            </th>
+                            <td data-label="API NAME">
+                                <div class="slds-truncate" title={item.FieldApiName}>{item.FieldApiName}</div>
+                            </td>
+                            <td data-label="CONFIG">
+                                <template if:true={item.custom}>
+                                    <lightning-button label="Delete Field" name={item.FieldApiName}
+                                        onclick={handleDelete}></lightning-button>
+                                </template>
+                                <template if:false={item.custom}>
+                                    <lightning-button label="Delete Field" disabled="true">
+                                    </lightning-button>
+                                </template>
+                            </td>
+                        </tr>
+                    </template>
+
+                </tbody>
+            </table>
+        </template>
+        <template if:false={loaded}>
+            <lightning-spinner alternative-text="Loading"></lightning-spinner>
+        </template>
+
+    </template>
+</template>
